@@ -92,13 +92,24 @@ class ProductAndServicePermissionMixin:
             return qs.none()
         
     def get_form(self, request, obj=None, **kwargs):
-        """Service Providers can only create products for themselves."""
+        """Service Providers can only create products for themselves
+           while Account Managers can only create products for their service providers.
+        """
         form = super().get_form(request, obj, **kwargs)
         if obj is None:
             # creating new product/service
-            if request.user.role not in ["admin", "account_manager"] and not request.user.is_superuser:
+            if request.user.role in ["service_provider"]:
+                # service provider can only create products for themselves
                 form.base_fields['service_provider'].initial = request.user.service_provider_profile
                 form.base_fields['service_provider'].disabled = True
+            elif request.user.role in ["account_manager"]:
+                # account manager can only create products for their service providers
+                service_provider_ids = registrar_models.AccountManagerServiceProvider.objects.filter(
+                    account_manager__user=request.user
+                ).values_list('service_provider_id', flat=True)
+                form.base_fields['service_provider'].queryset = registrar_models.ServiceProviderProfile.objects.filter(
+                    id__in=service_provider_ids
+                )
         return form
         
     def has_view_permission(self, request, obj=None):

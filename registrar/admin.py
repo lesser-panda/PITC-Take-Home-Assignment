@@ -1,7 +1,9 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin 
 from registrar import models as registrar_models
-from registrar.mixins.admin_permissions import UserProfilePermissionMixin
+from registrar.mixins.admin_permissions import (
+    UserProfilePermissionMixin,
+)
 
 
 @admin.register(registrar_models.User)
@@ -35,11 +37,18 @@ class CustomUserAdmin(UserProfilePermissionMixin, UserAdmin):
 
     def save_model(self, request, obj, form, change):
         manager_created_new_customer = (not change and request.user.role == "account_manager" and obj.role == "customer")
+        manager_created_new_service_provider = (not change and request.user.role == "account_manager" and obj.role == "service_provider")
         super().save_model(request, obj, form, change)
         if manager_created_new_customer:
             customer_profile, _ = registrar_models.CustomerProfile.objects.get_or_create(user=obj)
             registrar_models.CustomerAccountManager.objects.get_or_create(
                 customer=customer_profile,
+                account_manager=request.user.account_manager_profile,
+            )
+        if manager_created_new_service_provider:
+            service_provider_profile, _ = registrar_models.ServiceProviderProfile.objects.get_or_create(user=obj)
+            registrar_models.AccountManagerServiceProvider.objects.get_or_create(
+                service_provider=service_provider_profile,
                 account_manager=request.user.account_manager_profile,
             )
 

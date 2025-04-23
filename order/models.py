@@ -17,7 +17,7 @@ class ProductAndService(TimeStampBaseModel):
         ("service", "Service"),
     )
     type = models.CharField(max_length=20, choices=TYPE_CHOICES, default="product")
-    name = models.TextField(blank=True, null=True)
+    name = models.TextField()
     description = models.TextField(blank=True, null=True)
     price = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
 
