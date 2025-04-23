@@ -14,8 +14,9 @@ class UserProfilePermissionMixin:
         elif request.user.role == 'account_manager':
             customer_ids = registrar_models.CustomerAccountManager.objects.filter(
                 account_manager__user=request.user
-            ).values_list('customer_id', flat=True)
-            return qs.filter(role='customer', id__in=customer_ids)
+            ).values_list('customer__user_id', flat=True)
+            query = qs.filter(role='customer', id__in=customer_ids)
+            return query
         return qs.none()
     
     def get_form(self, request, obj=None, **kwargs):
@@ -52,4 +53,21 @@ class UserProfilePermissionMixin:
     def has_module_permission(self, request, obj=None):
         return request.user.is_superuser \
             or getattr(request.user, 'role', None) in ['account_manager', 'admin']
+    
+
+class CustomerAccountManagerPermissionMixin:
+    """
+    Custom permission mixin for the CustomerAccountManager model in the admin interface.
+    """
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser or request.user.role == 'admin':
+            return qs
+        elif request.user.role == 'account_manager':
+            customer_ids = registrar_models.CustomerAccountManager.objects.filter(
+                account_manager__user=request.user
+            ).values_list('customer_id', flat=True)
+            return qs.filter(customer_id__in=customer_ids)
+        return qs.none()
     

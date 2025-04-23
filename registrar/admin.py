@@ -33,6 +33,16 @@ class CustomUserAdmin(UserProfilePermissionMixin, UserAdmin):
     list_filter = ("role", "is_staff", "is_superuser")
     search_fields = ("email", "username", "first_name", "last_name")
 
+    def save_model(self, request, obj, form, change):
+        manager_created_new_customer = (not change and request.user.role == "account_manager" and obj.role == "customer")
+        super().save_model(request, obj, form, change)
+        if manager_created_new_customer:
+            customer_profile, _ = registrar_models.CustomerProfile.objects.get_or_create(user=obj)
+            registrar_models.CustomerAccountManager.objects.get_or_create(
+                customer=customer_profile,
+                account_manager=request.user.account_manager_profile,
+            )
+
 
 admin.site.register([
     registrar_models.CustomerProfile,

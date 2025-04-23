@@ -22,7 +22,3 @@ def create_user_profile(sender, instance, created, **kwargs):
             AccountManagerProfile.objects.create(user=instance)
         elif instance.role == "service_provider":
             ServiceProviderProfile.objects.create(user=instance)
-            if sender.role == "account_manager":
-                AccountManagerServiceProvider.objects.create(
-                    service_provider=instance, account_manager=sender
-                )
