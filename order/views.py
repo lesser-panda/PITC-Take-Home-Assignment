@@ -9,6 +9,15 @@ from order import models as order_models
 from registrar import models as registrar_models
 
 
+def homepage(request):
+    if request.user.is_authenticated:
+        if request.user.role == 'customer':
+            return redirect('customer_portal')
+        else:
+            return redirect('/admin')
+    return render(request, 'home.html')
+
+
 @login_required
 def welcome_view(request):
     return render(request, 'customer_portal.html')

@@ -21,7 +21,7 @@ class User(AbstractUser):
     role = models.CharField(
         max_length=20,
         choices=ROLE_CHOICES,
-        default="customer",
+        default="admin",
     )
     email = models.EmailField(_("email address"), unique=True)
     first_name = models.TextField(blank=True, null=True)
