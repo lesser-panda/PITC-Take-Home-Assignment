@@ -1,0 +1,12 @@
+<ul class="list-group" style="max-width: 600px;">
+    {% for item in order.items.all %}
+        <li class="list-group-item">
+            <a>{{ item.product.name }}</a>
+            <span class="badge bg-primary float-end">x{{ item.quantity }}</span>
+            <p>{{ item.product.description }}</p>
+            <p>Price: €{{ item.product.price }} / each</p>
+        </li>
+    {% empty %}
+        <li class="list-group-item">You do not have any items in this order yet.</li>
+    {% endfor %}
+</ul>

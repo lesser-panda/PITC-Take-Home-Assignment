@@ -70,6 +70,9 @@ class Order(TimeStampBaseModel):
     
     def get_absolute_url(self):
         return reverse("customer_order_detail", kwargs={"order_id": self.id})
+    
+    class Meta:
+        ordering = ['-created_at']
 
 
 class OrderItem(TimeStampBaseModel):

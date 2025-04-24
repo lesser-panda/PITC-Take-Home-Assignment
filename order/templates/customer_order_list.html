@@ -1,6 +1,21 @@
 {% extends 'base.html' %}
 
 {% block content %}
+    <div class="order-creation-form">
+        <form method="post" class="mb-4" style="max-width: 600px;">
+            {% csrf_token %}
+            <div class="mb-3">
+                {{ form.account_manager.label_tag }}
+                {{ form.account_manager }}
+            </div>
+            <div class="mb-3">
+                {{ form.description.label_tag }}
+                {{ form.description }}
+            </div>
+            <button type="submit" class="btn btn-success">Create Order</button>
+        </form>
+    </div>
+
     <div class="customer-order-list">
         <h2>Orders</h2>
         <p>Here are all your orders</p>
@@ -8,7 +23,7 @@
         <ul class="list-group" style="max-width: 600px;">
             {% for order in orders %}
                 <li class="list-group-item">
-                    <a href="{{order.get_absolute_url}}">Order #{{ order.id }}</a>
+                    <a href="{{ order.get_absolute_url }}">Order #{{ order.id }}</a>
                     <span class="badge bg-primary float-end">{{ order.status }}</span>
                     <p>{{ order.description }}</p>
                     <p>Account Manager: {{ order.account_manager.user.email }}</p>

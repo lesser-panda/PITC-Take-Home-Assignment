@@ -5,8 +5,6 @@ from registrar.models import (
     CustomerProfile,
     AccountManagerProfile,
     ServiceProviderProfile,
-    CustomerAccountManager,
-    AccountManagerServiceProvider,
 )
 
 
