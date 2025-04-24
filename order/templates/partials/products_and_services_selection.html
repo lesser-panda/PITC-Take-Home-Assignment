@@ -1,0 +1,27 @@
+<ul class="list-group" style="max-width: 600px;">
+    {% for item in products_and_services %}
+        <li class="list-group-item">
+            <form 
+                hx-post="{% url 'customer_order_add_items' %}" 
+                hx-target="#products-and-services-list-area" 
+                hx-swap="innerHTML"
+                method="POST"
+            >
+                {% csrf_token %}
+                <input type="hidden" name="order_id" value="{{ order.id }}">
+                <input type="hidden" name="product_service_id" value="{{ item.id }}">
+
+                <strong>{{ item.name }}</strong>
+                <p>{{ item.description }}</p>
+                <p>Price: €{{ item.price }} / each</p>
+
+                <div class="input-group mb-2" style="max-width: 200px;">
+                    <input type="number" class="form-control" name="quantity" value="1" min="1">
+                    <button class="btn btn-sm btn-outline-primary" type="submit">Add</button>
+                </div>
+            </form>
+        </li>
+    {% empty %}
+        <li class="list-group-item">You do not have any items in this order yet.</li>
+    {% endfor %}
+</ul>
