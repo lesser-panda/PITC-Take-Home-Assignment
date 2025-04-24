@@ -35,6 +35,7 @@
 <body>
     <div class="d-flex" id="wrapper">
         <!-- Sidebar -->
+        {% if user.is_authenticated %}
         <div class="bg-light border-end" id="sidebar-wrapper">
             <div class="sidebar-heading border-bottom bg-primary text-white px-3 py-2">JePPIX Customer Portal</div>
             <div class="list-group list-group-flush">
@@ -42,6 +43,7 @@
                 <a href="{% url 'customer_order_list' %}" class="list-group-item list-group-item-action bg-light">Orders</a>
             </div>
         </div>
+        {% endif %}
 
         <!-- Page content -->
         <div id="page-content-wrapper">

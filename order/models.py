@@ -33,13 +33,6 @@ class ProductAndService(TimeStampBaseModel):
 
 
 class Order(TimeStampBaseModel):
-    STATUS_CHOICES = (
-        ("new", "New"),
-        ("pending", "Pending"),
-        ("closed", "Closed"),
-        ("completed", "Completed"),
-    )
-
     customer = models.ForeignKey(
         registrar_models.CustomerProfile,
         on_delete=models.CASCADE,
@@ -50,9 +43,16 @@ class Order(TimeStampBaseModel):
         on_delete=models.CASCADE,
         related_name="orders",
     )
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="new")
     description = models.TextField(blank=True, null=True)
     amount = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
+    
+    job = models.ForeignKey(
+        'execution.Job',
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="orders",
+    )
 
     def __str__(self):
         return f"ODR {self.id} - CUST: {self.customer.user.email} - AM: {self.account_manager.user.email}"
@@ -66,13 +66,48 @@ class Order(TimeStampBaseModel):
         ).values_list("account_manager_id", flat=True)
         if self.account_manager.id not in connected_account_manager_ids:
             raise ValueError("You cannot create orders with this account manager.")
+        created = not self.id
         super().save(*args, **kwargs)
+        if created:
+            # Create initial order state
+            OrderState.objects.create(order=self, state_date=self.created_at, state='new')
+
+    @property
+    def state(self):
+        return self.order_states.last().state if self.order_states.exists() else None
     
     def get_absolute_url(self):
         return reverse("customer_order_detail", kwargs={"order_id": self.id})
     
     class Meta:
         ordering = ['-created_at']
+
+
+class OrderState(models.Model):
+    """
+    Keep track of the order state changes so that when we create a report
+    retrospectively, we can still accurately report the statistics for 
+    orders during a given time period in the past.
+    """
+
+    STATE_CHOICES = [
+        ('new', 'New'),
+        ('pending', 'Pending'),
+        ('closed', 'Closed'),
+        ('completed', 'Completed'),
+    ]
+
+    state_date = models.DateTimeField(auto_now_add=True)
+    state = models.CharField(max_length=20, choices=STATE_CHOICES)
+
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.CASCADE,
+        related_name='order_states',
+    )
+
+    def __str__(self):
+        return f"Order:#{self.order.id} changed to {self.state} on {self.state_date}"
 
 
 class OrderItem(TimeStampBaseModel):
