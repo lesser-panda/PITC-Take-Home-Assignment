@@ -25,3 +25,13 @@ class OrderList(View):
             'customer_order_list.html',
             {'orders': request.user.customer_profile.orders.all()}
         )
+
+
+class OrderDetail(View):
+    def get(self, request, order_id):
+        order = request.user.customer_profile.orders.get(id=order_id)
+        return render(
+            request,
+            'customer_order_detail.html',
+            {'order': order}
+        )

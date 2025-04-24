@@ -25,7 +25,6 @@ class OrderAdmin(OrderPermissionMixin, admin.ModelAdmin):
         'id', 
         'customer__user__email',
         'account_manager__user__email',
-        'service_provider__user__email', 
         'created_at',
     ]
     ordering = ['-created_at']
@@ -38,9 +37,9 @@ class OrderItemAdmin(OrderItemPermissionMixin, admin.ModelAdmin):
         'order__id',
         'product__name',
         'product__type',
+        'product__service_provider__user__email',
         'quantity',
         'order__customer__user__email',
         'order__account_manager__user__email',
-        'order__service_provider__user__email',
     ]
     ordering = ['-created_at']
