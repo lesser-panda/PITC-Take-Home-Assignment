@@ -3,7 +3,7 @@
 """
 from django.db import models
 
-from .report import Report
+from stat_analysis.models import Report
 
 
 class JobReportResult(models.Model):
@@ -38,6 +38,9 @@ class JobReportResult(models.Model):
         help_text="Number of jobs with 'Completed' state in the given period.",
         default=0,
     )
+
+    def __str__(self):
+        return f"Job Report Result for {self.report.title} ({self.report.year_from}{self.report.quarter_from} - {self.report.year_to}{self.report.quarter_to})"
     
 
 class OrderReportResult(models.Model):
@@ -47,7 +50,30 @@ class OrderReportResult(models.Model):
     """
     report = models.OneToOneField(Report, on_delete=models.CASCADE)
 
-    # Example data fields of what the order report may contain.
     total_orders = models.IntegerField()
-    total_revenue = models.DecimalField(max_digits=10, decimal_places=2)
-    average_order_value = models.DecimalField(max_digits=10, decimal_places=2)
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2)
+    average_amount = models.DecimalField(max_digits=12, decimal_places=2)
+    order_new = models.IntegerField()
+    order_pending = models.IntegerField()
+    order_completed = models.IntegerField()
+    order_closed = models.IntegerField()
+
+    def __str__(self):
+        return f"Order Report Result for {self.report.title} ({self.report.year_from}{self.report.quarter_from} - {self.report.year_to}{self.report.quarter_to})"
+
+
+class UserReportResult(models.Model):
+    """
+    Model to store analysis results for the Users.
+    """
+    report = models.OneToOneField(Report, on_delete=models.CASCADE)
+
+    total_users = models.IntegerField()
+    total_customers = models.IntegerField()
+    total_account_managers = models.IntegerField()
+    total_service_providers = models.IntegerField()
+    average_orders_per_user = models.FloatField()
+    average_customers_per_account_manager = models.FloatField()
+
+    def __str__(self):
+        return f"User Report Result for {self.report.title} ({self.report.year_from}{self.report.quarter_from} - {self.report.year_to}{self.report.quarter_to})"

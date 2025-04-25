@@ -39,4 +39,9 @@ class Report(models.Model):
             quarter_to=self.quarter_to,
             year_to=self.year_to,
         )
-
+        calculate_order_stats(
+            quarter_from=self.quarter_from,
+            year_from=self.year_from,
+            quarter_to=self.quarter_to,
+            year_to=self.year_to,
+        )

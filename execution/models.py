@@ -5,6 +5,8 @@ the execution progress of customer orders.
 """
 from django.db import models
 
+from registrar.models import ServiceProviderProfile
+
 
 class Job(models.Model):
 
@@ -17,9 +19,29 @@ class Job(models.Model):
 
     job_type = models.CharField(max_length=20, choices=JOB_TYPE_CHOICES)
 
-    starting_date = models.DateTimeField()
-    end_date = models.DateTimeField()
-    completion_time = models.FloatField(help_text="Time in days which were spent to complete the job.")
+    completion_time = models.FloatField(
+        help_text="Time in days which were spent to complete the job.",
+        null=True,
+        blank=True,
+    )
+
+    service_provider = models.ForeignKey(
+        ServiceProviderProfile,
+        on_delete=models.CASCADE,
+        related_name='jobs',
+    )
+
+    @property
+    def starting_date(self):
+        first_state = self.job_states.first()
+        return first_state.state_date or None
+    
+    @property
+    def end_date(self):
+        last_state = self.job_states.last()
+        if last_state and last_state.state == 'completed':
+            return last_state.state_date
+        return None
 
     def save(self, *args, **kwargs):
         created = not self.id

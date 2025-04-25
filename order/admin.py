@@ -43,3 +43,16 @@ class OrderItemAdmin(OrderItemPermissionMixin, admin.ModelAdmin):
         'order__account_manager__user__email',
     ]
     ordering = ['-created_at']
+
+
+@admin.register(order_models.OrderState)
+class OrderStateAdmin(admin.ModelAdmin):
+    list_display = [
+        'id', 
+        'order__id',
+        'state',
+        'order__customer__user__email',
+        'order__account_manager__user__email',
+        'state_date',
+    ]
+    ordering = ['-state_date']

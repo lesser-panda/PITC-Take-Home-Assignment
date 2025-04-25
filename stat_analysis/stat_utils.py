@@ -1,16 +1,19 @@
 from collections import defaultdict
 import datetime
 
-from django.db.models import OuterRef, Subquery, Max
+from django.db.models import Subquery, Max, OuterRef
 from django.apps import apps
+from django.contrib.auth import get_user_model
 
 
 job_model = apps.get_model("execution", "Job")
 job_states_model = apps.get_model("execution", "JobState")
 job_stats_model = apps.get_model("stat_analysis", "JobReportResult")
 order_model = apps.get_model("order", "Order")
+order_states_model = apps.get_model("order", "OrderState")
 order_stats_model = apps.get_model("stat_analysis", "OrderReportResult")
 report_model = apps.get_model("stat_analysis", "Report")
+user_model = get_user_model()
 
 
 def get_quarter_dates(quarter, year):
@@ -36,14 +39,21 @@ def get_average_completion_time(job_type, start_date, end_date):
     job_types = job_model.JOB_TYPE_CHOICES
     if job_type not in dict(job_types):
         raise ValueError(f"Invalid job type. Please use one of {dict(job_types).keys()}.")
+    
     jobs = job_model.objects.filter(
         job_type=job_type,
-        starting_date__gte=start_date,
-        end_date__lte=end_date
-    )
-    if jobs.exists():
+        completion_time__isnull=False,
+    ).exclude(completion_time=0)
+
+    jobs = [
+        job for job in jobs
+        if job.starting_date.date() and job.end_date and
+        job.starting_date.date() >= start_date and job.end_date.date() <= end_date
+    ]
+
+    if jobs:
         total_completion_time = sum(job.completion_time for job in jobs)
-        average_completion_time = total_completion_time / jobs.count()
+        average_completion_time = total_completion_time / len(jobs)
     else:
         average_completion_time = 0.0
     return average_completion_time
@@ -55,13 +65,6 @@ def get_job_state_count(start_date, end_date):
     latest state for each job within the given time range to count
     the number of jobs in each state correctly.
     """
-    # Get the latest state_date per job within the time range
-    latest_state_dates = job_states_model.objects.filter(
-        state_date__gte=start_date,
-        state_date__lte=end_date,
-        job=OuterRef('job')
-    ).order_by('-state_date')
-
     latest_states = job_states_model.objects.filter(
         pk__in=Subquery(
             job_states_model.objects.filter(
@@ -90,10 +93,14 @@ def calculate_job_stats(quarter_from, year_from, quarter_to, year_to):
     start_date = min(start_date_from, start_date_to)
     end_date = max(end_date_from, end_date_to)
 
-    total_jobs = job_model.objects.filter(
-        starting_date__gte=start_date,
-        end_date__lte=end_date
-    ).count()
+    jobs = job_model.objects.prefetch_related('job_states').all()
+    jobs = [
+        job for job in jobs
+        if job.starting_date.date() and start_date <= job.starting_date.date() <= end_date
+    ]
+
+    total_jobs = len(jobs)
+
     average_completion_time_regular = get_average_completion_time(
         'regular', start_date, end_date
     )
@@ -118,7 +125,7 @@ def calculate_job_stats(quarter_from, year_from, quarter_to, year_to):
         }
     )
 
-    job_stats, created = job_stats_model.objects.get_or_create(
+    job_stats, created = job_stats_model.objects.update_or_create(
         report=report,
         defaults={
             'total_jobs': total_jobs,
@@ -130,11 +137,32 @@ def calculate_job_stats(quarter_from, year_from, quarter_to, year_to):
         }
     )
 
-    if not created:
-        job_stats.total_jobs = total_jobs
-        job_stats.save()
-
     return job_stats
+
+
+def get_order_state_count(start_date, end_date):
+    """
+    Since each order can have multiple states, we need to get the
+    latest state for each order within the given time range to count
+    the number of jobs in each state correctly.
+    """
+    latest_states = order_states_model.objects.filter(
+        pk__in=Subquery(
+            order_states_model.objects.filter(
+                state_date__gte=start_date,
+                state_date__lte=end_date
+            )
+            .values('order')
+            .annotate(latest_id=Max('id'))
+            .values('latest_id')
+        )
+    )
+
+    order_states_count = defaultdict(int)
+    for order_state in latest_states:
+        order_states_count[order_state.state] += 1
+
+    return order_states_count
 
 
 def calculate_order_stats(quarter_from, year_from, quarter_to, year_to):
@@ -144,4 +172,82 @@ def calculate_order_stats(quarter_from, year_from, quarter_to, year_to):
 
     start_date = min(start_date_from, start_date_to)
     end_date = max(end_date_from, end_date_to)
+    
+    orders = order_model.objects.prefetch_related('order_states').all()
+    orders = [
+        order for order in orders
+        if order.starting_date.date() and start_date <= order.starting_date.date() <= end_date
+    ]
+    total_orders = len(orders)
 
+    total_amount = sum(order.amount for order in orders if order.amount is not None)
+
+    average_amount = total_amount / total_orders if total_orders > 0 else 0.0
+    order_states_count = get_order_state_count(start_date, end_date)
+
+    order_new = order_states_count.get("new", 0)
+    order_pending = order_states_count.get("pending", 0)
+    order_closed = order_states_count.get("closed", 0)
+    order_completed = order_states_count.get("completed", 0)
+
+    report, created = report_model.objects.get_or_create(
+        quarter_from=quarter_from,
+        year_from=year_from,
+        quarter_to=quarter_to,
+        year_to=year_to,
+        defaults={
+            'title': 'Job Report',
+            'created_at': datetime.datetime.now(),
+            'created_by': 'system',
+        }
+    )
+
+    order_stats, created = order_stats_model.objects.update_or_create(
+        report=report,
+        defaults={
+            'total_orders': total_orders,
+            'total_amount': total_amount,
+            'average_amount': average_amount,
+            'order_new': order_new,
+            'order_pending': order_pending,
+            'order_closed': order_closed,
+            'order_completed': order_completed,
+        }
+    )
+
+    return order_stats
+
+
+def calculate_user_stats(quarter_from, year_from, quarter_to, year_to):
+    """Calculate statistics for User model for a given period."""
+    start_date_from, end_date_from = get_quarter_dates(quarter_from, year_from)
+    start_date_to, end_date_to = get_quarter_dates(quarter_to, year_to)
+
+    start_date = min(start_date_from, start_date_to)
+    end_date = max(end_date_from, end_date_to)
+
+    all_users = user_model.objects.filter(
+        date_joined__gte=start_date,
+        date_joined__lte=end_date
+    )
+    user_count = all_users.count()
+    customer_count = all_users.filter(role=user_model.ROLE_CHOICES.customer).count()
+    account_manager_count = all_users.filter(role=user_model.ROLE_CHOICES.account_manager).count()
+    service_provider_count = all_users.filter(role=user_model.ROLE_CHOICES.service_provider).count()
+
+    order_first_state_subquery = order_states_model.objects.filter(
+        order=OuterRef('pk')
+    ).order_by('state_date').values('state_date')[:1]
+
+    order_created_during_date_range = order_model.objects.annotate(
+        creation_date=Subquery(order_first_state_subquery)
+    ).filter(
+        creation_date__gte=start_date,
+        creation_date__lte=end_date,
+    )
+
+    total_orders = order_created_during_date_range.count()
+    average_orders_per_user = total_orders / user_count if user_count > 0 else 0.0
+    average_customers_per_account_manager = customer_count / account_manager_count if account_manager_count > 0 else 0.0
+
+    

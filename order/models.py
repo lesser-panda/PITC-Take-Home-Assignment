@@ -76,6 +76,18 @@ class Order(TimeStampBaseModel):
     def state(self):
         return self.order_states.last().state if self.order_states.exists() else None
     
+    @property
+    def starting_date(self):
+        first_state = self.order_states.first()
+        return first_state.state_date if first_state else None
+    
+    @property
+    def end_date(self):
+        last_state = self.order_states.last()
+        if last_state and last_state.state == 'completed':
+            return last_state.state_date
+        return None
+    
     def get_absolute_url(self):
         return reverse("customer_order_detail", kwargs={"order_id": self.id})
     
