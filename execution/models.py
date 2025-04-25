@@ -48,7 +48,7 @@ class Job(models.Model):
         super().save(*args, **kwargs)
         if created:
             # Create initial job status
-            JobState.objects.create(job=self, state_date=self.starting_date, state='created')
+            JobState.objects.create(job=self, state='created')
 
     def __str__(self):
         return self.job_name

@@ -7,11 +7,26 @@ from stat_analysis.models import Report
 
 
 class JobReportResult(models.Model):
-    """Model to store analysis results for the Jobs.
+    """Model to store analysis results for the Jobs
 
     `Job` model is defined in `execution` app.
+
+    Changes:
+        - Changed relationship to Report to OneToMany, and have
+            separate JobReportResult for each Service Providers.
+        - Added more fields for statistics as requested.
     """
-    report = models.OneToOneField(Report, on_delete=models.CASCADE)
+    report = models.ForeignKey(
+        Report, 
+        on_delete=models.CASCADE,
+        related_name='job_report_results',
+    )
+
+    service_provider = models.ForeignKey(
+        'registrar.ServiceProviderProfile',
+        on_delete=models.CASCADE,
+        related_name='job_report_results',
+    )
 
     total_jobs = models.IntegerField()
 

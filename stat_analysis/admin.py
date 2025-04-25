@@ -12,6 +12,7 @@ class JobReportResultAdmin(admin.ModelAdmin):
     list_display = [
         'id',
         'report__title',
+        'service_provider',
         'total_jobs',
         'average_completion_time_regular',
         'average_completion_time_wafer_run',
@@ -19,6 +20,10 @@ class JobReportResultAdmin(admin.ModelAdmin):
         'jobs_active',
         'jobs_completed',
         'report__created_at',
+    ]
+    list_filter = [
+        'service_provider',
+        'report__title',
     ]
     ordering = ['-id']
 

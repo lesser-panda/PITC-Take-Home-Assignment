@@ -20,9 +20,11 @@ class Report(models.Model):
         return f"{self.title} ({self.year_from}{self.quarter_from} - {self.year_to}{self.quarter_to})"
     
     def save(self, *args, **kwargs):
+        # import here to avoid circular import issues
         from stat_analysis.stat_utils import (
             calculate_order_stats,
             calculate_job_stats,
+            calculate_user_stats,
         )
         """
         Run statistics calculation on creating or saaving a Report for
@@ -40,6 +42,12 @@ class Report(models.Model):
             year_to=self.year_to,
         )
         calculate_order_stats(
+            quarter_from=self.quarter_from,
+            year_from=self.year_from,
+            quarter_to=self.quarter_to,
+            year_to=self.year_to,
+        )
+        calculate_user_stats(
             quarter_from=self.quarter_from,
             year_from=self.year_from,
             quarter_to=self.quarter_to,
