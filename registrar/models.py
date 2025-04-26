@@ -35,6 +35,18 @@ class User(AbstractUser):
     def __str__(self):
         return f"{self.email} - {self.role}"
 
+    def save(self, *args, **kwargs):
+        created = not self.id
+        super().save(*args, **kwargs)
+        
+        if created:
+            if self.role == "customer":
+                CustomerProfile.objects.create(user=self)
+            elif self.role == "account_manager":
+                AccountManagerProfile.objects.create(user=self)
+            elif self.role == "service_provider":
+                ServiceProviderProfile.objects.create(user=self)
+
 
 class ServiceProviderProfile(TimeStampBaseModel):
     user = models.OneToOneField(
