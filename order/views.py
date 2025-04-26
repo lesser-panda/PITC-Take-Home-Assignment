@@ -10,6 +10,7 @@ from registrar import models as registrar_models
 
 
 def homepage(request):
+    """Landing page when the user is not logged in."""
     if request.user.is_authenticated:
         if request.user.role == 'customer':
             return redirect('customer_portal')
@@ -33,6 +34,7 @@ class CustomerLoginView(LoginView):
 
 
 class OrderList(LoginRequiredMixin, View):
+    """View for customers to view and create orders."""
     def get(self, request):
         return render(
             request,
@@ -41,6 +43,7 @@ class OrderList(LoginRequiredMixin, View):
         )
     
     def post(self, request):
+        """Create a new order by selecting an account manager."""
         customer = request.user.customer_profile
         form = CustomerOrderForm(request.POST, customer=customer)
 

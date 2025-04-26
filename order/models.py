@@ -123,6 +123,9 @@ class OrderState(models.Model):
 
 
 class OrderItem(TimeStampBaseModel):
+    """
+    Individual items in an order. Each order can have multiple items.
+    """
     order = models.ForeignKey(
         Order,
         on_delete=models.CASCADE,

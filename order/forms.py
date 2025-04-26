@@ -4,6 +4,11 @@ from registrar import models as registrar_models
 
 
 class CustomerOrderForm(forms.ModelForm):
+    """
+    Form for customers to create an order. 
+    Make sure that the user can only select
+    account managers that are associated with their profile.
+    """
     class Meta:
         model = order_models.Order
         fields = [
