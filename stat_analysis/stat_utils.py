@@ -15,6 +15,7 @@ order_stats_model = apps.get_model("stat_analysis", "OrderReportResult")
 report_model = apps.get_model("stat_analysis", "Report")
 service_provider_model = apps.get_model("registrar", "ServiceProviderProfile")
 user_model = get_user_model()
+user_stats_model = apps.get_model("stat_analysis", "UserReportResult")
 
 
 def get_quarter_dates(quarter, year):
@@ -253,9 +254,9 @@ def calculate_user_stats(quarter_from, year_from, quarter_to, year_to):
         date_joined__lte=end_date
     )
     user_count = all_users.count()
-    customer_count = all_users.filter(role=user_model.ROLE_CHOICES.customer).count()
-    account_manager_count = all_users.filter(role=user_model.ROLE_CHOICES.account_manager).count()
-    service_provider_count = all_users.filter(role=user_model.ROLE_CHOICES.service_provider).count()
+    customer_count = all_users.filter(role="customer").count()
+    account_manager_count = all_users.filter(role="account_manager").count()
+    service_provider_count = all_users.filter(role="service_provider").count()
 
     order_first_state_subquery = order_states_model.objects.filter(
         order=OuterRef('pk')
@@ -269,7 +270,7 @@ def calculate_user_stats(quarter_from, year_from, quarter_to, year_to):
     )
 
     total_orders = order_created_during_date_range.count()
-    average_orders_per_user = total_orders / user_count if user_count > 0 else 0.0
+    average_orders_per_user = total_orders / customer_count if customer_count > 0 else 0.0
     average_customers_per_account_manager = customer_count / account_manager_count if account_manager_count > 0 else 0.0
 
     report, created = report_model.objects.get_or_create(
@@ -284,7 +285,7 @@ def calculate_user_stats(quarter_from, year_from, quarter_to, year_to):
         }
     )
 
-    user_stats, created = user_model.objects.update_or_create(
+    user_stats, created = user_stats_model.objects.update_or_create(
         report=report,
         defaults={
             "total_users": user_count,

@@ -42,4 +42,26 @@ class OrderReportResultAdmin(admin.ModelAdmin):
         'order_closed',
         'report__created_at',
     ]
+    list_filter = [
+        'report__title',
+    ]
+    ordering = ['-id']
+
+
+@admin.register(stat_analysis_models.UserReportResult)
+class UserReportResultAdmin(admin.ModelAdmin):
+    list_display = [
+        'id',
+        'report__title',
+        'total_users',
+        'total_customers',
+        'total_account_managers',
+        'total_service_providers',
+        'average_orders_per_user',
+        'average_customers_per_account_manager',
+        'report__created_at',
+    ]
+    list_filter = [
+        'report__title',
+    ]
     ordering = ['-id']
