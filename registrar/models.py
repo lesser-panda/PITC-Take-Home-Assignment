@@ -38,7 +38,7 @@ class User(AbstractUser):
     def save(self, *args, **kwargs):
         created = not self.id
         super().save(*args, **kwargs)
-        
+
         if created:
             if self.role == "customer":
                 CustomerProfile.objects.create(user=self)
@@ -103,6 +103,16 @@ class CustomerProfile(TimeStampBaseModel):
 
 
 class AccountManagerServiceProvider(TimeStampBaseModel):
+    """
+    Relationship table to keep track of who 
+    is the account manager for which service provider.
+    When an account manager creates a service provider,
+    the service provider is automatically linked to the account manager.
+    An account manager can manage multiple service providers,
+    but cannot create this relationship manually themselves as limited 
+    by the Admin permission settings. 
+    """
+
     account_manager = models.ForeignKey(AccountManagerProfile, on_delete=models.CASCADE)
     service_provider = models.ForeignKey(ServiceProviderProfile, on_delete=models.CASCADE)
 
@@ -116,6 +126,17 @@ class AccountManagerServiceProvider(TimeStampBaseModel):
     
 
 class CustomerAccountManager(TimeStampBaseModel):
+    """
+    Relationship table to keep track of who 
+    is the account manager for which customer.
+    An account manager can have multiple customers.
+    When the customer is created by an account manager,
+    the account manager is automatically linked to the customer.
+    However, this relationship cannot be created manually by the account manager.
+    A customer can have multiple account managers. This relationship
+    can be created manually by the admin.
+    """
+
     customer = models.ForeignKey(CustomerProfile, on_delete=models.CASCADE)
     account_manager = models.ForeignKey(AccountManagerProfile, on_delete=models.CASCADE)
 
