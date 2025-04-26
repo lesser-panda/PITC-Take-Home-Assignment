@@ -14,7 +14,7 @@ order_states_model = apps.get_model("order", "OrderState")
 order_stats_model = apps.get_model("stat_analysis", "OrderReportResult")
 report_model = apps.get_model("stat_analysis", "Report")
 service_provider_model = apps.get_model("registrar", "ServiceProviderProfile")
-user_model = get_user_model("stat_analysis", "UserReportResult")
+user_model = get_user_model()
 
 
 def get_quarter_dates(quarter, year):

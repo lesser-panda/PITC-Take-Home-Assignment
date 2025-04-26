@@ -3,6 +3,7 @@
 This script defines the Job model which is used to track
 the execution progress of customer orders.
 """
+import datetime
 from django.db import models
 
 from registrar.models import ServiceProviderProfile
@@ -67,7 +68,7 @@ class JobState(models.Model):
         ('completed', 'Completed'),
     ]
 
-    state_date = models.DateTimeField(auto_now_add=True)
+    state_date = models.DateTimeField(default=datetime.datetime.now)
     state = models.CharField(max_length=20, choices=STATE_CHOICES)
 
     job = models.ForeignKey(
