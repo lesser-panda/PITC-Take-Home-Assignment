@@ -10,7 +10,18 @@
             <div class="col-md-8">
                 <h4>Items in this order</h4>
                 <div id="products-and-services-list-area">
-                    {% include 'partials/products_and_services_list.html' %}
+                    <ul class="list-group" style="max-width: 600px;">
+                        {% for item in order.items.all %}
+                            <li class="list-group-item">
+                                <a>{{ item.product.name }}</a>
+                                <span class="badge bg-primary float-end">x{{ item.quantity }}</span>
+                                <p>{{ item.product.description }}</p>
+                                <p>Price: €{{ item.product.price }} / each</p>
+                            </li>
+                        {% empty %}
+                            <li class="list-group-item">You do not have any items in this order yet.</li>
+                        {% endfor %}
+                    </ul>
                 </div>
             </div>
             <div class="col-md-4">
@@ -18,7 +29,7 @@
                 <div 
                     id="products-and-services-selection-area"
                     hx-get="{% url 'customer_order_available_items_to_add' order.id %}"
-                    hx-trigger="load"
+                    hx-trigger="load, refresh"
                     hx-target="#products-and-services-selection-area"
                     hx-swap="innerHTML"
                 >
