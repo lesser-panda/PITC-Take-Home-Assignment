@@ -21,7 +21,10 @@ def homepage(request):
 
 @login_required
 def welcome_view(request):
-    return render(request, 'customer_portal.html')
+    if request.user.role == 'customer':
+        return render(request, 'customer_portal.html')
+    else:
+        return redirect('/admin')
 
 
 class CustomerLoginView(LoginView):
