@@ -18,7 +18,7 @@ A demo admin user will be created at startup.
 
 ## User Interface
 - A basic frontend (Django Templates) for Customers has been created for customers to create orders and add products/services with their account managers
-- Admins, Account Managers and Service Providers will be using the Djang Admin
+- Admins, Account Managers and Service Providers will be using the Django Admin
 
 ### Account Manager
 1. Log into the Admin interface (localhost:8000/admin) with an Admin account
@@ -31,8 +31,8 @@ A demo admin user will be created at startup.
 
 ### Customers
 1. Customers can log into the frontend (localhost:8000/) with their account, created by their Account Manager
-2. Create order by selecting an Account Manager. Customers can only see Account Managers that created their accounts, or has relationship with them created by an Admin. Account Managers cannot connect with Customers by themselves.
-3. Add products & services from Service Managers managed by the order's Account Manager. **Customers will NOT see products & services from Service Managers that are not managed by their Account Manager. Doing so will trigger a DB level assertion.**
+2. Create order by selecting an Account Manager. Customers can only see Account Managers that created their accounts, or has relationship with them created by an Admin. Account Managers cannot connect with Customers by themselves (unless the customer was created by them).
+3. Add products & services from Service Managers managed by the order's Account Manager. **Customers will NOT see or add products & services from Service Managers that are not managed by their Account Manager. Doing so by tempering with the POST request will trigger a DB level assertion.**
 
 ### Analysis Report
 - Several changes has been made to the provided data models, including:
