@@ -3,13 +3,23 @@
 """
 from django.db import models
 from django.core.validators import FileExtensionValidator
+from django.contrib.auth import get_user_model
+
+
+user_model = get_user_model()
 
 
 class Report(models.Model):
     # metadata
     title = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
-    created_by = ...
+    created_by = models.ForeignKey(
+        user_model,
+        on_delete=models.SET_NULL,
+        related_name='created_reports',
+        null=True,
+        blank=True,
+    )
 
     # Report settings 
     quarter_from = models.CharField(max_length=2)  # Q1, Q2, Q3, Q4

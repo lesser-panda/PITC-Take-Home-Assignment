@@ -2,9 +2,32 @@ from django.contrib import admin
 from stat_analysis import models as stat_analysis_models
 
 
-admin.site.register([
-    stat_analysis_models.Report
-])
+@admin.register(stat_analysis_models.Report)
+class ReportResultAdmin(admin.ModelAdmin):
+    list_display = [
+        'id',
+        'title',
+        'created_by',
+        'quarter_from',
+        'year_from',
+        'quarter_to',
+        'year_to',
+        'created_at',
+    ]
+    list_filter = [
+        'created_by',
+        'year_from',
+        'year_to',
+    ]
+    readonly_fields = [
+        'created_by',
+    ]
+    ordering = ['-created_at']
+
+    def save_model(self, request, obj, form, change):
+        if not obj.created_by:
+            obj.created_by = request.user
+        super().save_model(request, obj, form, change)
 
 
 @admin.register(stat_analysis_models.JobReportResult)
