@@ -2,6 +2,7 @@
 
 """
 from django.db import models
+from django.core.validators import FileExtensionValidator
 
 
 class Report(models.Model):
@@ -15,6 +16,15 @@ class Report(models.Model):
     year_from = models.IntegerField()
     quarter_to = models.CharField(max_length=2)  # Q1, Q2, Q3, Q4
     year_to = models.IntegerField()
+
+    pdf_report = models.FileField(
+        upload_to='reports_pdf/',
+        validators=[
+            FileExtensionValidator(allowed_extensions=['pdf']),
+        ],
+        blank=True,
+        null=True,
+    )
 
     def __str__(self):
         return f"{self.title} ({self.year_from}{self.quarter_from} - {self.year_to}{self.quarter_to})"

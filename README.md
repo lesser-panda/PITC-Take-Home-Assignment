@@ -6,7 +6,7 @@ To build:
 
 To run:
 
-`docker run -p 8000:8000 -e DJANGO_SECRET_KEY=*PUT_YOUR_SECRET_KEY_HERE* pitc_demo`
+`docker run -p 8000:8000 -e DJANGO_SUPERUSER_PASSWORD="pitc_demo" DJANGO_SECRET_KEY=*PUT_YOUR_SECRET_KEY_HERE* pitc_demo`
 
 The app can now be accessed at
 
