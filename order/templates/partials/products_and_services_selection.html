@@ -5,6 +5,7 @@
                 hx-post="{% url 'customer_order_add_items' %}" 
                 hx-target="#products-and-services-list-area" 
                 hx-swap="innerHTML"
+                hx-on"htmx:afterRequest: htmx.trigger('#products-and-services-selection-area', 'refresh')"
                 method="POST"
             >
                 {% csrf_token %}

@@ -75,6 +75,38 @@ class OrderItemPermissionMixin:
         return request.user.is_superuser or getattr(request.user, 'role', None) == 'admin'
     
 
+class OrderItemPermissionMixin:
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+
+        if request.user.is_superuser or getattr(request.user, 'role', None) == 'admin':
+            return qs
+
+        if getattr(request.user, 'role', None) == 'account_manager':
+            customer_ids = registrar_models.CustomerAccountManager.objects.filter(
+                account_manager__user=request.user
+            ).values_list('customer_id', flat=True)
+
+            return qs.filter(order__customer_id__in=customer_ids)
+
+        return qs.none()
+    
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser or getattr(request.user, 'role', None) in ['account_manager', 'admin']
+    
+    def has_module_permission(self, request, obj=None):
+        return request.user.is_superuser or getattr(request.user, 'role', None) in ['account_manager', 'admin']
+    
+    def has_add_permission(self, request, obj=None):
+        return request.user.is_superuser or getattr(request.user, 'role', None) in ['account_manager', 'admin']
+    
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser or getattr(request.user, 'role', None) == 'admin'
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser or getattr(request.user, 'role', None) == 'admin'
+    
+
 class ProductAndServicePermissionMixin:
     def get_queryset(self, request):
         qs = super().get_queryset(request)

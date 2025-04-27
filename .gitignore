@@ -11,6 +11,7 @@ venv/
 
 # Database
 db.sqlite3
+*.sqlite3
 *.db
 
 # macOS
@@ -32,3 +33,7 @@ $RECYCLE.BIN/
 
 # PyCharm
 .idea
+
+# Django
+staticfiles/
+media
