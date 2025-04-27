@@ -33,3 +33,7 @@ $RECYCLE.BIN/
 
 # PyCharm
 .idea
+
+# Django
+staticfiles/
+media
