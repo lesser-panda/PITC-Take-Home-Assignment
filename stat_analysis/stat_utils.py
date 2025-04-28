@@ -132,6 +132,10 @@ def calculate_job_stats(quarter_from, year_from, quarter_to, year_to):
 
     for service_provider in service_providers:
         current_provider_jobs = jobs.filter(service_provider=service_provider).all()
+        # Due to the nature of the modified starting_date field, which is a property field
+        # a normal ORM/SQL query will not work here. It's slower but does not matter
+        # for the reporting use case. If better performance is needed, we can
+        # de-normalize this field into the Job model.
         current_provider_jobs = [
             job for job in current_provider_jobs
             if job.starting_date.date() and start_date <= job.starting_date.date() <= end_date
